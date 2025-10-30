@@ -1,5 +1,5 @@
 <!-- File: voter_analytics/templates/voter_list.html -->
-<!--  Name: Jed Belsany -->
+<!-- Name: Jed Belsany -->
 <!-- BU email: belsanyj@bu.edu -->
 <!-- Description: Template for displaying filtered list of voters -->
 
@@ -125,6 +125,11 @@
 </head>
 <body>
     <h1>Newton Voter Analytics</h1>
+    
+    <div class="nav-links">
+        <a href="{% url 'voter_analytics:voters' %}">📊 Voter List</a>
+        <a href="{% url 'voter_analytics:graphs' %}">📈 Graphs</a>
+    </div>
     
     <div class="filter-form">
         <h2>Filter Voters</h2>
