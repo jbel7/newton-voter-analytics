@@ -1,126 +1,70 @@
-<!-- File: voter_analytics/templates/voter_detail.html -->
-<!--  Name: Jed Belsany -->
-<!-- BU email: belsanyj@bu.edu -->
-<!-- Description: Template for displaying details for a single voter -->
+<!-- File: voter_analytics/templates/voter_analytics/voter_detail.html -->
+<!-- Name: Jed Belsany -->
+<!-- Description: Details for a single voter -->
 
 {% extends 'voter_analytics/base.html' %}
 
-{% block title %}{{ voter.first_name }} {{ voter.last_name }} - Voter Details{% endblock %}
+{% block title %}{{ voter.first_name }} {{ voter.last_name }} · Newton Voter Analytics{% endblock %}
 
 {% block content %}
-<div class="header">
-    <h1>👤 Voter Details</h1>
-    <p>Comprehensive information about the selected voter</p>
-</div>
+<section class="dark page-head">
+    <div class="wrap">
+        <a class="back eyebrow" href="{% url 'voter_analytics:voters' %}">← All voters</a>
+        <p class="eyebrow">Precinct {{ voter.precinct_number }} · Registered {{ voter.date_of_registration|date:"Y" }}</p>
+        <h1 class="display">{{ voter.first_name }} {{ voter.last_name }}</h1>
 
-<div class="nav-links">
-    <a href="{% url 'voter_analytics:voters' %}">← Back to Voter List</a>
-    <a href="{% url 'voter_analytics:graphs' %}">📈 Graphs</a>
-</div>
+        <div class="stats">
+            <div class="stat"><span class="eyebrow">Party</span><b>{{ voter.party_affiliation|cut:' ' }}</b></div>
+            <div class="stat"><span class="eyebrow">Born</span><b>{{ voter.date_of_birth|date:"Y" }}</b></div>
+            <div class="stat"><span class="eyebrow">ZIP</span><b>{% if voter.zip_code|length == 4 %}0{% endif %}{{ voter.zip_code }}</b></div>
+            <div class="stat">
+                <span class="eyebrow">Voter score · {{ voter.voter_score }}/5</span>
+                <div class="meter" aria-hidden="true">{% for i in "12345" %}<i{% if forloop.counter <= voter.voter_score %} class="on"{% endif %}></i>{% endfor %}</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div class="content-card">
-    <h1 style="color: #667eea; margin-bottom: 30px;">{{ voter.first_name }} {{ voter.last_name }}</h1>
-    
-    <div class="detail-section">
-        <h2>📋 Personal Information</h2>
-        <div class="info-grid">
-            <div class="info-label">First Name:</div>
-            <div class="info-value">{{ voter.first_name }}</div>
-            
-            <div class="info-label">Last Name:</div>
-            <div class="info-value">{{ voter.last_name }}</div>
-            
-            <div class="info-label">Date of Birth:</div>
-            <div class="info-value">{{ voter.date_of_birth|date:"F d, Y" }}</div>
+<section class="section">
+    <div class="wrap detail-grid">
+        <div class="panel span-2">
+            <p class="eyebrow">Voting history</p>
+            <h2>Voted in {{ voter.voter_score }} of 5 recent elections</h2>
+            <ol class="history">
+                <li class="{% if voter.v20state %}voted{% endif %}"><span class="eyebrow">State</span><span class="year">2020</span><span class="status">{% if voter.v20state %}Voted{% else %}Did not vote{% endif %}</span></li>
+                <li class="{% if voter.v21town %}voted{% endif %}"><span class="eyebrow">Town</span><span class="year">2021</span><span class="status">{% if voter.v21town %}Voted{% else %}Did not vote{% endif %}</span></li>
+                <li class="{% if voter.v21primary %}voted{% endif %}"><span class="eyebrow">Primary</span><span class="year">2021</span><span class="status">{% if voter.v21primary %}Voted{% else %}Did not vote{% endif %}</span></li>
+                <li class="{% if voter.v22general %}voted{% endif %}"><span class="eyebrow">General</span><span class="year">2022</span><span class="status">{% if voter.v22general %}Voted{% else %}Did not vote{% endif %}</span></li>
+                <li class="{% if voter.v23town %}voted{% endif %}"><span class="eyebrow">Town</span><span class="year">2023</span><span class="status">{% if voter.v23town %}Voted{% else %}Did not vote{% endif %}</span></li>
+            </ol>
         </div>
-    </div>
-    
-    <div class="detail-section">
-        <h2>🏠 Address Information</h2>
-        <div class="info-grid">
-            <div class="info-label">Street Address:</div>
-            <div class="info-value">
-                {{ voter.street_number }} {{ voter.street_name }}
-                {% if voter.apartment_number %}
-                    <br>Apartment {{ voter.apartment_number }}
-                {% endif %}
-            </div>
-            
-            <div class="info-label">City, State ZIP:</div>
-            <div class="info-value">Newton, MA {{ voter.zip_code }}</div>
-        </div>
-        <a href="{{ google_maps_url }}" target="_blank" class="map-link">📍 View on Google Maps</a>
-    </div>
-    
-    <div class="detail-section">
-        <h2>🗳️ Voter Registration</h2>
-        <div class="info-grid">
-            <div class="info-label">Registration Date:</div>
-            <div class="info-value">{{ voter.date_of_registration|date:"F d, Y" }}</div>
-            
-            <div class="info-label">Party Affiliation:</div>
-            <div class="info-value">{{ voter.party_affiliation }}</div>
-            
-            <div class="info-label">Precinct Number:</div>
-            <div class="info-value">{{ voter.precinct_number }}</div>
-            
-            <div class="info-label">Voter Score:</div>
-            <div class="info-value"><span class="score-badge">{{ voter.voter_score }} / 5</span></div>
-        </div>
-    </div>
-    
-    <div class="detail-section">
-        <h2>📊 Voting History</h2>
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
-            <div style="display: flex; justify-content: space-between; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                <strong>2020 State Election:</strong>
-                {% if voter.v20state %}
-                    <span class="voted-yes">✓ Voted</span>
-                {% else %}
-                    <span class="voted-no">✗ Did Not Vote</span>
-                {% endif %}
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                <strong>2021 Town Election:</strong>
-                {% if voter.v21town %}
-                    <span class="voted-yes">✓ Voted</span>
-                {% else %}
-                    <span class="voted-no">✗ Did Not Vote</span>
-                {% endif %}
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                <strong>2021 Primary Election:</strong>
-                {% if voter.v21primary %}
-                    <span class="voted-yes">✓ Voted</span>
-                {% else %}
-                    <span class="voted-no">✗ Did Not Vote</span>
-                {% endif %}
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                <strong>2022 General Election:</strong>
-                {% if voter.v22general %}
-                    <span class="voted-yes">✓ Voted</span>
-                {% else %}
-                    <span class="voted-no">✗ Did Not Vote</span>
-                {% endif %}
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                <strong>2023 Town Election:</strong>
-                {% if voter.v23town %}
-                    <span class="voted-yes">✓ Voted</span>
-                {% else %}
-                    <span class="voted-no">✗ Did Not Vote</span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="nav-links">
-    <a href="{% url 'voter_analytics:voters' %}">← Back to Voter List</a>
-</div>
+        <div class="panel">
+            <p class="eyebrow">Address</p>
+            <h2>Where they live</h2>
+            <dl class="kv">
+                <dt>Street</dt>
+                <dd>{{ voter.street_number }} {{ voter.street_name }}{% if voter.apartment_number %}<br>Apartment {{ voter.apartment_number }}{% endif %}</dd>
+                <dt>City</dt>
+                <dd>Newton, MA {% if voter.zip_code|length == 4 %}0{% endif %}{{ voter.zip_code }}</dd>
+            </dl>
+            <a href="{{ google_maps_url }}" target="_blank" rel="noopener" class="btn">Open in Google Maps ↗</a>
+        </div>
+
+        <div class="panel">
+            <p class="eyebrow">Registration</p>
+            <h2>On the rolls</h2>
+            <dl class="kv">
+                <dt>Registered</dt>
+                <dd>{{ voter.date_of_registration|date:"F j, Y" }}</dd>
+                <dt>Born</dt>
+                <dd>{{ voter.date_of_birth|date:"F j, Y" }}</dd>
+                <dt>Party</dt>
+                <dd><span class="party party-{{ voter.party_affiliation|cut:' ' }}">{{ voter.party_affiliation|cut:' ' }}</span></dd>
+                <dt>Precinct</dt>
+                <dd>{{ voter.precinct_number }}</dd>
+            </dl>
+        </div>
+    </div>
+</section>
 {% endblock %}

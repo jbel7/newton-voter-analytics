@@ -9,6 +9,21 @@ from .models import Voter
 from django.db.models import Q
 import plotly.graph_objects as go
 from collections import Counter
+
+# Chart styling to match the site theme (see base.html).
+ACCENT = '#4d7cfe'
+CHART_LAYOUT = dict(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(family='Geist, system-ui, sans-serif', size=13, color='#1a1916'),
+    title_x=0,
+    title_font_size=15,
+    margin=dict(l=48, r=16, t=56, b=48),
+    xaxis=dict(gridcolor='#d3cdc1', linecolor='#1a1916', zeroline=False),
+    yaxis=dict(gridcolor='#d3cdc1', zeroline=False),
+    hoverlabel=dict(bgcolor='#161513', font=dict(color='#f2efe9')),
+)
+PARTY_COLORS = {'D': '#4d7cfe', 'R': '#e2412e', 'U': '#a39e94'}
 # Create your views here.
 
 class VoterListView(ListView):
@@ -213,18 +228,16 @@ class GraphsView(ListView):
             go.Bar(
                 x=sorted(year_counts.keys()),
                 y=[year_counts[year] for year in sorted(year_counts.keys())],
-                marker_color='#6B7FFF'
+                marker_color=ACCENT
             )
         ])
         fig1.update_layout(
             title=f'Voter distribution by Year of Birth (n={len(voters)})',
             xaxis_title='Year of Birth',
             yaxis_title='Count',
-            plot_bgcolor='#E8ECEF',
-            paper_bgcolor='white',
-            font=dict(size=14)
+            **CHART_LAYOUT,
         )
-        context['birth_year_graph'] = fig1.to_html(full_html=False)
+        context['birth_year_graph'] = fig1.to_html(full_html=False, include_plotlyjs='cdn', config={'displaylogo': False, 'responsive': True})
         
         # Graph 2: Pie chart of voters by party affiliation
         party_counts = Counter([voter.party_affiliation for voter in voters])
@@ -234,40 +247,44 @@ class GraphsView(ListView):
                 labels=list(party_counts.keys()),
                 values=list(party_counts.values()),
                 textposition='inside',
-                textinfo='percent+label'
+                textinfo='percent+label',
+                hole=0.55,
+                sort=True,
+                marker=dict(
+                    colors=[PARTY_COLORS.get(p.strip(), '#d3cdc1') for p in party_counts],
+                    line=dict(color='#efece6', width=2),
+                ),
             )
         ])
         fig2.update_layout(
             title=f'Voter distribution by Party Affiliation (n={len(voters)})',
-            font=dict(size=14)
+            **{k: v for k, v in CHART_LAYOUT.items() if k not in ('xaxis', 'yaxis')},
         )
-        context['party_affiliation_graph'] = fig2.to_html(full_html=False)
+        context['party_affiliation_graph'] = fig2.to_html(full_html=False, include_plotlyjs=False, config={'displaylogo': False, 'responsive': True})
         
         # Graph 3: Bar chart of voter participation by election
         elections = {
-            'v20state': sum(1 for v in voters if v.v20state),
-            'v21town': sum(1 for v in voters if v.v21town),
-            'v21primary': sum(1 for v in voters if v.v21primary),
-            'v22general': sum(1 for v in voters if v.v22general),
-            'v23town': sum(1 for v in voters if v.v23town),
+            '2020 State': sum(1 for v in voters if v.v20state),
+            '2021 Town': sum(1 for v in voters if v.v21town),
+            '2021 Primary': sum(1 for v in voters if v.v21primary),
+            '2022 General': sum(1 for v in voters if v.v22general),
+            '2023 Town': sum(1 for v in voters if v.v23town),
         }
         
         fig3 = go.Figure(data=[
             go.Bar(
                 x=list(elections.keys()),
                 y=list(elections.values()),
-                marker_color='#6B7FFF'
+                marker_color=ACCENT
             )
         ])
         fig3.update_layout(
             title=f'Vote Count by Election (n={len(voters)})',
             xaxis_title='Election',
             yaxis_title='Number of Voters',
-            plot_bgcolor='#E8ECEF',
-            paper_bgcolor='white',
-            font=dict(size=14)
+            **CHART_LAYOUT,
         )
-        context['election_participation_graph'] = fig3.to_html(full_html=False)
+        context['election_participation_graph'] = fig3.to_html(full_html=False, include_plotlyjs=False, config={'displaylogo': False, 'responsive': True})
         
         # Add filter options (reuse from VoterListView)
         context['party_affiliations'] = Voter.objects.values_list('party_affiliation', flat=True).distinct().order_by('party_affiliation')
