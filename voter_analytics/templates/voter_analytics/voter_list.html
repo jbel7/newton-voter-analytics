@@ -1,162 +1,83 @@
-<!-- File: voter_analytics/templates/voter_list.html -->
+<!-- File: voter_analytics/templates/voter_analytics/voter_list.html -->
 <!-- Name: Jed Belsany -->
-<!-- BU email: belsanyj@bu.edu -->
-<!-- Description: Template for displaying filtered list of voters -->
+<!-- Description: Filterable, paginated list of Newton voters -->
 
 {% extends 'voter_analytics/base.html' %}
 
-{% block title %}Voter List - Newton Voter Analytics{% endblock %}
+{% block title %}Voters · Newton Voter Analytics{% endblock %}
 
+{% load humanize %}
 {% block content %}
-<div class="header">
-    <h1>🗳️ Newton Voter Analytics</h1>
-    <p>Explore and analyze voter data from Newton, Massachusetts</p>
-</div>
+<section class="dark page-head">
+    <div class="wrap">
+        <p class="eyebrow">Newton, Massachusetts · Voter registration</p>
+        <h1 class="display">Who votes in <span class="accent">Newton.</span></h1>
+        <p class="lede">Search and filter every registered voter in the city by party, age and turnout across five recent elections.</p>
+    </div>
+</section>
 
-<div class="nav-links">
-    <a href="{% url 'voter_analytics:voters' %}" class="active">📊 Voter List</a>
-    <a href="{% url 'voter_analytics:graphs' %}">📈 Graphs</a>
-</div>
+<section class="section">
+    <div class="wrap">
+        {% url 'voter_analytics:voters' as reset_url %}
+        {% include 'voter_analytics/_filters.html' with reset_url=reset_url submit_label="Apply filters" %}
 
-<div class="filter-form">
-    <h2>🔍 Filter Voters</h2>
-    <form method="get">
-        <div class="filter-row">
-            <div class="filter-field">
-                <label for="party_affiliation">Party Affiliation:</label>
-                <select name="party_affiliation" id="party_affiliation">
-                    <option value="">All Parties</option>
-                    {% for party in party_affiliations %}
-                        <option value="{{ party }}" {% if party == current_party %}selected{% endif %}>
-                            {{ party }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-field">
-                <label for="min_birth_year">Min Birth Year:</label>
-                <select name="min_birth_year" id="min_birth_year">
-                    <option value="">No Minimum</option>
-                    {% for year in birth_years %}
-                        <option value="{{ year }}" {% if year|stringformat:"s" == current_min_year %}selected{% endif %}>
-                            {{ year }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-field">
-                <label for="max_birth_year">Max Birth Year:</label>
-                <select name="max_birth_year" id="max_birth_year">
-                    <option value="">No Maximum</option>
-                    {% for year in birth_years %}
-                        <option value="{{ year }}" {% if year|stringformat:"s" == current_max_year %}selected{% endif %}>
-                            {{ year }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="filter-field">
-                <label for="voter_score">Voter Score:</label>
-                <select name="voter_score" id="voter_score">
-                    <option value="">Any Score</option>
-                    {% for score in voter_scores %}
-                        <option value="{{ score }}" {% if score|stringformat:"s" == current_voter_score %}selected{% endif %}>
-                            {{ score }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="results-bar">
+            <p><b>{{ page_obj.paginator.count|intcomma }}</b> voters match</p>
+            {% if page_obj.paginator.count %}
+                <p class="eyebrow">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}</p>
+            {% endif %}
         </div>
-        
-        <div class="filter-field">
-            <label>Voted in Elections:</label>
-            <div class="checkbox-group">
-                <div class="checkbox-item">
-                    <input type="checkbox" name="v20state" id="v20state" {% if current_v20state %}checked{% endif %}>
-                    <label for="v20state">2020 State</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" name="v21town" id="v21town" {% if current_v21town %}checked{% endif %}>
-                    <label for="v21town">2021 Town</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" name="v21primary" id="v21primary" {% if current_v21primary %}checked{% endif %}>
-                    <label for="v21primary">2021 Primary</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" name="v22general" id="v22general" {% if current_v22general %}checked{% endif %}>
-                    <label for="v22general">2022 General</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" name="v23town" id="v23town" {% if current_v23town %}checked{% endif %}>
-                    <label for="v23town">2023 Town</label>
-                </div>
-            </div>
+
+        <div class="table-wrap">
+            <table class="voters">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="hide-sm">Street address</th>
+                        <th class="hide-sm">Born</th>
+                        <th>Party</th>
+                        <th>Voter score</th>
+                        <th class="hide-sm"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voter in voters %}
+                    <tr>
+                        <td class="name"><a href="{% url 'voter_analytics:voter' voter.pk %}">{{ voter.first_name }} {{ voter.last_name }}</a></td>
+                        <td class="hide-sm">{{ voter.street_number }} {{ voter.street_name }}{% if voter.apartment_number %}, Apt {{ voter.apartment_number }}{% endif %}</td>
+                        <td class="hide-sm num">{{ voter.date_of_birth|date:"m/d/Y" }}</td>
+                        <td><span class="party party-{{ voter.party_affiliation|cut:' ' }}">{{ voter.party_affiliation|cut:' ' }}</span></td>
+                        <td>
+                            <span class="score" aria-hidden="true">{% for i in "12345" %}<i{% if forloop.counter <= voter.voter_score %} class="on"{% endif %}></i>{% endfor %}</span>
+                            <span class="score-label">{{ voter.voter_score }}/5</span>
+                        </td>
+                        <td class="hide-sm"><a class="row-link" href="{% url 'voter_analytics:voter' voter.pk %}">View →</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty">
+                            <h3>No voters found</h3>
+                            <p>Try loosening a filter or two.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        
-        <div class="button-group">
-            <button type="submit">Apply Filters</button>
-            <a href="{% url 'voter_analytics:voters' %}" class="reset-link">Reset Filters</a>
-        </div>
-    </form>
-</div>
 
-<div class="results-count">
-    📍 Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} voters
-</div>
-
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Street Address</th>
-                <th>Date of Birth</th>
-                <th>Party</th>
-                <th>Voter Score</th>
-                <th>Details</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for voter in voters %}
-            <tr>
-                <td>{{ voter.first_name }}</td>
-                <td>{{ voter.last_name }}</td>
-                <td>{{ voter.street_number }} {{ voter.street_name }}
-                    {% if voter.apartment_number %}Apt {{ voter.apartment_number }}{% endif %}
-                </td>
-                <td>{{ voter.date_of_birth|date:"m/d/Y" }}</td>
-                <td>{{ voter.party_affiliation }}</td>
-                <td>{{ voter.voter_score }}</td>
-                <td><a href="{% url 'voter_analytics:voter' voter.pk %}">View Details →</a></td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" class="empty-state">
-                    <h3>No voters found</h3>
-                    <p>Try adjusting your filters to see results.</p>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="pagination">
-    {% if page_obj.has_previous %}
-        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">« First</a>
-        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">‹ Previous</a>
-    {% endif %}
-    
-    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    
-    {% if page_obj.has_next %}
-        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next ›</a>
-        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">Last »</a>
-    {% endif %}
-</div>
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="pagination" aria-label="Pages">
+            {% if page_obj.has_previous %}
+                <a class="btn" href="{% querystring page=1 %}">« First</a>
+                <a class="btn" href="{% querystring page=page_obj.previous_page_number %}">‹ Prev</a>
+            {% endif %}
+            <span class="current">Page {{ page_obj.number|intcomma }} of {{ page_obj.paginator.num_pages|intcomma }}</span>
+            {% if page_obj.has_next %}
+                <a class="btn" href="{% querystring page=page_obj.next_page_number %}">Next ›</a>
+                <a class="btn" href="{% querystring page=page_obj.paginator.num_pages %}">Last »</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}

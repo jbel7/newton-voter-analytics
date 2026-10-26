@@ -1,0 +1,69 @@
+<!-- File: voter_analytics/templates/voter_analytics/_filters.html -->
+<!-- Description: Shared filter form for the voter list and graphs pages. Expects reset_url and submit_label. -->
+
+<form method="get" class="filters">
+    <div class="filters-head">
+        <h2>Filter</h2>
+        <span class="eyebrow">All filters combine</span>
+    </div>
+
+    <div class="filter-row">
+        <div class="field">
+            <label class="eyebrow" for="party_affiliation">Party</label>
+            <select name="party_affiliation" id="party_affiliation">
+                <option value="">All parties</option>
+                {% for party in party_affiliations %}
+                    <option value="{{ party }}" {% if party == current_party %}selected{% endif %}>
+                        {{ party }}{% if party == "D " %} · Democrat{% elif party == "R " %} · Republican{% elif party == "U " %} · Unenrolled{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="eyebrow" for="min_birth_year">Born after</label>
+            <select name="min_birth_year" id="min_birth_year">
+                <option value="">No minimum</option>
+                {% for year in birth_years %}
+                    <option value="{{ year }}" {% if year|stringformat:"s" == current_min_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="eyebrow" for="max_birth_year">Born before</label>
+            <select name="max_birth_year" id="max_birth_year">
+                <option value="">No maximum</option>
+                {% for year in birth_years %}
+                    <option value="{{ year }}" {% if year|stringformat:"s" == current_max_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="eyebrow" for="voter_score">Voter score</label>
+            <select name="voter_score" id="voter_score">
+                <option value="">Any score</option>
+                {% for score in voter_scores %}
+                    <option value="{{ score }}" {% if score|stringformat:"s" == current_voter_score %}selected{% endif %}>{{ score }} / 5</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="elections">
+        <p class="eyebrow">Voted in</p>
+        <div class="chips">
+            <label class="chip"><input type="checkbox" name="v20state" {% if current_v20state %}checked{% endif %}><span>2020 State</span></label>
+            <label class="chip"><input type="checkbox" name="v21town" {% if current_v21town %}checked{% endif %}><span>2021 Town</span></label>
+            <label class="chip"><input type="checkbox" name="v21primary" {% if current_v21primary %}checked{% endif %}><span>2021 Primary</span></label>
+            <label class="chip"><input type="checkbox" name="v22general" {% if current_v22general %}checked{% endif %}><span>2022 General</span></label>
+            <label class="chip"><input type="checkbox" name="v23town" {% if current_v23town %}checked{% endif %}><span>2023 Town</span></label>
+        </div>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">{{ submit_label }} →</button>
+        <a href="{{ reset_url }}" class="btn btn-ghost">Reset</a>
+    </div>
+</form>
