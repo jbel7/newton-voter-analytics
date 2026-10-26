@@ -8,7 +8,6 @@ from django.views.generic import ListView, DetailView
 from .models import Voter
 from django.db.models import Q
 import plotly.graph_objects as go
-import plotly.express as px
 from collections import Counter
 # Create your views here.
 
