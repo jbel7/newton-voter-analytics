@@ -3,6 +3,7 @@
 <!-- Description: Filterable, paginated list of Newton voters -->
 
 {% extends 'voter_analytics/base.html' %}
+{% load privacy %}
 
 {% block title %}Voters · Newton Voter Analytics{% endblock %}
 
@@ -43,9 +44,9 @@
                 <tbody>
                     {% for voter in voters %}
                     <tr>
-                        <td class="name"><a href="{% url 'voter_analytics:voter' voter.pk %}">{{ voter.first_name }} {{ voter.last_name }}</a></td>
-                        <td class="hide-sm">{{ voter.street_number }} {{ voter.street_name }}{% if voter.apartment_number %}, Apt {{ voter.apartment_number }}{% endif %}</td>
-                        <td class="hide-sm num">{{ voter.date_of_birth|date:"m/d/Y" }}</td>
+                        <td class="name"><a href="{% url 'voter_analytics:voter' voter.pk %}">{{ voter.first_name|mask_name }} {{ voter.last_name|mask_name }}</a></td>
+                        <td class="hide-sm">{{ voter|mask_street }}</td>
+                        <td class="hide-sm num">{{ voter.date_of_birth|mask_dob }}</td>
                         <td><span class="party party-{{ voter.party_affiliation|cut:' ' }}">{{ voter.party_affiliation|cut:' ' }}</span></td>
                         <td>
                             <span class="score" aria-hidden="true">{% for i in "12345" %}<i{% if forloop.counter <= voter.voter_score %} class="on"{% endif %}></i>{% endfor %}</span>

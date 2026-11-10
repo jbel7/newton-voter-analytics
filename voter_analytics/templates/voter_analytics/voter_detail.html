@@ -3,15 +3,16 @@
 <!-- Description: Details for a single voter -->
 
 {% extends 'voter_analytics/base.html' %}
+{% load privacy %}
 
-{% block title %}{{ voter.first_name }} {{ voter.last_name }} · Newton Voter Analytics{% endblock %}
+{% block title %}{{ voter.first_name|mask_name }} {{ voter.last_name|mask_name }} · Newton Voter Analytics{% endblock %}
 
 {% block content %}
 <section class="dark page-head">
     <div class="wrap">
         <a class="back eyebrow" href="{% url 'voter_analytics:voters' %}">← All voters</a>
         <p class="eyebrow">Precinct {{ voter.precinct_number }} · Registered {{ voter.date_of_registration|date:"Y" }}</p>
-        <h1 class="display">{{ voter.first_name }} {{ voter.last_name }}</h1>
+        <h1 class="display">{{ voter.first_name|mask_name }} {{ voter.last_name|mask_name }}</h1>
 
         <div class="stats">
             <div class="stat"><span class="eyebrow">Party</span><b>{{ voter.party_affiliation|cut:' ' }}</b></div>
@@ -44,11 +45,10 @@
             <h2>Where they live</h2>
             <dl class="kv">
                 <dt>Street</dt>
-                <dd>{{ voter.street_number }} {{ voter.street_name }}{% if voter.apartment_number %}<br>Apartment {{ voter.apartment_number }}{% endif %}</dd>
+                <dd>{{ voter|mask_street }}</dd>
                 <dt>City</dt>
                 <dd>Newton, MA {% if voter.zip_code|length == 4 %}0{% endif %}{{ voter.zip_code }}</dd>
             </dl>
-            <a href="{{ google_maps_url }}" target="_blank" rel="noopener" class="btn">Open in Google Maps ↗</a>
         </div>
 
         <div class="panel">
@@ -58,7 +58,7 @@
                 <dt>Registered</dt>
                 <dd>{{ voter.date_of_registration|date:"F j, Y" }}</dd>
                 <dt>Born</dt>
-                <dd>{{ voter.date_of_birth|date:"F j, Y" }}</dd>
+                <dd>{{ voter.date_of_birth|mask_dob }}</dd>
                 <dt>Party</dt>
                 <dd><span class="party party-{{ voter.party_affiliation|cut:' ' }}">{{ voter.party_affiliation|cut:' ' }}</span></dd>
                 <dt>Precinct</dt>
