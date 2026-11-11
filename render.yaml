@@ -3,6 +3,7 @@ services:
     name: newton-voter-analytics
     runtime: python
     plan: free
+    region: virginia
     buildCommand: ./build.sh
     startCommand: gunicorn config.wsgi:application
     envVars:
